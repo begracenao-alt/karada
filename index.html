@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>カラダの声診断 — 今のあなたに必要な整え方</title>
+<style>
+  :root{
+    /* 白・ピンク・ゴールド・シルバー（紫なし） */
+    --ink:#4a3d42; --ink-dim:#7a6a70; --ink-faint:#a89aa0;
+    --champ:#e6c98a; --champ-soft:#f4e3b6; --champ-deep:#c9a85f; --gold-deep:#b88a32;
+    --rose:#e6a6b4; --rose-soft:#f6d2da; --rosegold:#e3b79e; --rose-deep:#c0808d;
+    --silver:#c7c3c9; --silver-soft:#ece9ee;
+    --brand:#b88a32;
+    --card:#ffffff; --panel:#ffffff; --panel-2:#fdf4f5;
+    --line:rgba(190,150,140,.16);
+    --shadow:0 10px 30px rgba(205,165,170,.18);
+    /* セマンティック別名 */
+    --text:var(--ink); --muted:var(--ink-dim);
+    --accent:var(--champ-deep); --accent-d:var(--rose-deep); --rose-d:var(--rose-deep);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+    background:radial-gradient(130% 95% at 50% -12%, #ffffff 0%, #fefafa 52%, #fcf6f1 100%) fixed;
+    color:var(--text);line-height:1.85;-webkit-font-smoothing:antialiased;min-height:100vh;}
+  .serif{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;}
+  .wrap{max-width:620px;margin:0 auto;padding:30px 18px 90px;}
+  header{text-align:center;margin-bottom:22px;}
+  header h1{font-size:1.5rem;margin:0 0 8px;letter-spacing:.14em;color:var(--brand);font-weight:500;}
+  header .lead{color:var(--muted);margin:0;font-size:.86rem;letter-spacing:.02em;}
+  .card{background:var(--panel);border:1px solid rgba(190,150,140,.22);border-radius:var(--radius);
+    padding:28px 22px;margin-bottom:20px;box-shadow:var(--shadow);text-align:center;}
+  /* 装飾の区切り線 */
+  .divider{width:46px;height:2px;margin:0 auto;border:none;border-radius:2px;
+    background:linear-gradient(90deg,var(--rose),var(--champ-deep));}
+  .divider.lg{margin:22px auto;width:60px;}
+  .divider.dot{position:relative;overflow:visible;}
+  .divider.dot::after{content:"❀";position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+    font-size:13px;color:var(--rose);background:var(--card);padding:0 8px;}
+  .btn{display:block;width:100%;border:none;border-radius:14px;padding:16px;font-size:1.04rem;font-weight:700;
+    cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--rose),var(--rosegold));
+    box-shadow:0 8px 20px rgba(220,160,170,.32);transition:.15s;letter-spacing:.06em;
+    text-align:center;text-decoration:none;box-sizing:border-box;}
+  .btn:hover{filter:brightness(1.04);transform:translateY(-1px);}
+  .btn:disabled{opacity:.35;cursor:default;transform:none;}
+  .btn.sub{background:#fff;color:var(--muted);border:1px solid var(--silver);
+    font-weight:600;box-shadow:none;}
+  .btn.line{background:linear-gradient(135deg,var(--champ),var(--champ-deep));color:#fff;box-shadow:0 8px 20px rgba(201,168,95,.32);}
+  .muted{color:var(--muted);font-size:.85rem;}
+  .intro-lead{font-size:1.06rem;line-height:2;margin:0 0 20px;}
+  .intro-note{background:var(--panel-2);border-radius:12px;padding:14px 16px;font-size:.86rem;
+    color:var(--muted);margin:0 0 22px;line-height:1.8;}
+  /* progress */
+  .progbar{height:5px;background:var(--panel-2);border-radius:999px;overflow:hidden;margin-bottom:6px;}
+  .progfill{height:100%;background:linear-gradient(90deg,var(--rose),var(--accent));width:0;transition:width .35s;}
+  .progtxt{color:var(--muted);font-size:.78rem;margin-bottom:20px;letter-spacing:.03em;}
+  .qchapter{font-size:.74rem;color:var(--accent-d);letter-spacing:.12em;margin-bottom:6px;font-weight:700;}
+  .q{font-size:1.2rem;font-weight:700;margin:2px 0 20px;line-height:1.6;}
+  .opts{display:flex;flex-direction:column;gap:11px;}
+  .opt{background:var(--panel-2);border:1.5px solid transparent;color:var(--text);border-radius:13px;
+    padding:15px 17px;font-size:.97rem;font-family:inherit;text-align:left;cursor:pointer;
+    transition:.15s;line-height:1.65;}
+  .opt:hover{border-color:var(--rose);transform:translateY(-1px);}
+  .opt.active{border-color:var(--champ-deep);background:linear-gradient(180deg,rgba(246,210,218,.6),transparent);}
+  .nav{display:flex;gap:10px;margin-top:22px;}
+  /* result */
+  .res-eyebrow{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:.12em;margin-bottom:10px;}
+  .res-head{font-size:1.34rem;line-height:1.75;text-align:center;font-weight:700;margin:0 0 4px;color:var(--accent-d);}
+  .res-body{margin-top:18px;font-size:.98rem;line-height:2;}
+  .res-body p{margin:0 0 14px;}
+  .hope{background:linear-gradient(180deg,#fff8f4,#fdeef0);border:1px solid var(--line);
+    border-radius:14px;padding:18px 18px;margin-top:18px;font-size:.97rem;line-height:1.95;}
+  .hope .h-ti{font-weight:700;color:var(--rose-d);margin-bottom:6px;font-size:.95rem;}
+  .care{background:linear-gradient(180deg,#fffaf0,#fdf3e2);border:1px solid var(--line);
+    border-radius:14px;padding:18px 18px;margin-top:14px;font-size:.96rem;line-height:1.9;}
+  .care .c-ti{font-weight:700;color:var(--gold-deep);margin-bottom:6px;font-size:.95rem;}
+  .sci{font-size:.82rem;color:var(--muted);line-height:1.85;margin-top:14px;text-align:left;
+    background:#fbf7f3;border-left:3px solid var(--champ);border-radius:8px;padding:11px 14px;}
+  /* balance bars */
+  .balance{margin:6px 0 2px;}
+  .balance .bhead{font-size:.95rem;font-weight:700;margin-bottom:14px;}
+  .bar-row{margin-bottom:14px;}
+  .bar-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+  .bar-lab{font-weight:700;font-size:.92rem;}
+  .bar-sub{font-size:.74rem;color:var(--muted);}
+  .bar-track{height:14px;background:var(--panel-2);border-radius:999px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:999px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1);
+    background:linear-gradient(90deg,var(--rose),var(--accent));}
+  .cta{margin-top:8px;}
+  .cta .lead2{text-align:center;font-size:1rem;line-height:1.9;margin:0 0 16px;}
+  .disc{font-size:.74rem;color:var(--muted);margin-top:20px;text-align:center;line-height:1.7;}
+  .hidden{display:none;}
+  footer{text-align:center;color:var(--muted);font-size:.72rem;margin-top:28px;letter-spacing:.08em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 class="serif">カラダの声診断</h1>
+    <p class="lead">〜 今のあなたに必要な整え方 〜</p>
+    <hr class="divider lg">
+  </header>
+
+  <!-- ===== INTRO ===== -->
+  <section id="intro" class="card">
+    <p class="intro-lead serif">
+      年齢でも、生まれつきでもありません。<br>
+      今のあなたのカラダには、<br>
+      まだ眠っている力があります。
+    </p>
+    <p style="margin:0 0 4px;font-size:.95rem;">
+      12の質問で、今のカラダが何を求めているのかを、一緒に見ていきましょう🤍<br>
+      うまく答えられない質問があっても大丈夫。<br>
+      <strong>「なんとなく違う」も、あなたのカラダの大切な声</strong>です。
+    </p>
+    <div class="intro-note">
+      全12問・約2分。<br>
+      正解はありません。考えこまず、「なんとなく近いな」で選んでください。
+    </div>
+    <button class="btn" id="startBtn">カラダの声を聴いてみる</button>
+  </section>
+
+  <!-- ===== QUIZ ===== -->
+  <section id="quiz" class="card hidden">
+    <div class="progbar"><div class="progfill" id="progfill"></div></div>
+    <div class="progtxt" id="qcount"></div>
+    <div class="qchapter" id="qchapter"></div>
+    <hr class="divider" style="margin:10px auto 18px">
+    <div class="q" id="qtext"></div>
+    <div class="opts" id="opts"></div>
+    <div class="nav">
+      <button class="btn sub" id="backBtn">← ひとつ戻る</button>
+    </div>
+  </section>
+
+  <!-- ===== RESULT ===== -->
+  <section id="result" class="hidden">
+    <div class="card">
+      <div class="res-eyebrow">あなたのカラダが教えてくれた、いまのクセ</div>
+      <div class="res-head serif" id="resHead"></div>
+      <hr class="divider dot lg">
+      <div class="res-body" id="resBody"></div>
+      <div class="sci" id="resSci"></div>
+      <div class="hope" id="resHope"></div>
+      <div class="care" id="resCare"></div>
+    </div>
+
+    <div class="card">
+      <div class="balance">
+        <div class="bhead">整えると、いちばん変わるのはここ</div>
+        <div id="bars"></div>
+      </div>
+      <p class="muted" style="margin:14px 0 0;font-size:.82rem;line-height:1.8;">
+        ※ バーが長いほど、いまクセが集まっている場所。＝整えると、いちばん大きく変わる“伸びしろ”です。
+      </p>
+    </div>
+
+    <div class="card cta">
+      <p class="lead2 serif">
+        この読み解きは、今のあなたの目安です。<br><br>
+        あなたのカラダは、<br>
+        まだたくさんのことを教えてくれます。<br><br>
+        もっと深く知りたい方へ🤍
+      </p>
+      <a class="btn line" id="lineBtn" href="#" target="_blank" rel="noopener">
+        あなただけの<br>詳しい読み解きを受け取る
+      </a>
+      <button class="btn sub" id="restartBtn" style="margin-top:10px;">もう一度診断する</button>
+    </div>
+
+    <p class="disc">
+      ※ この診断は、今の自分のカラダの声に気づくためのものです。医療的な診断ではありません。
+    </p>
+  </section>
+
+  <footer>Be Grace — カラダの声診断</footer>
+</div>
+
+<script>
+/* =========================================================
+   カラダの声診断
+   - 表：日常の手がかり（自覚なくても・認めたくなくても答えられる）
+   - 裏：首/背中/腰/骨盤/仙骨 ＋「気づけてない度」へマッピング（お客様には見せない）
+   - 結果：箱に入れない。一番眠っている領域＝伸びしろ として“あなただけ”の読み解き
+   ========================================================= */
+
+/* ============================================================
+   ★★★ LINEのリンクは、ここだけ変えればOK ★★★
+   下の "#" の部分を、LINE登録のURLに書きかえるだけ。
+   （例）  const LINE_URL = "https://lin.ee/xxxxxxx";
+   ↑ ここ以外はさわらなくて大丈夫。レイアウトは崩れません。
+   ============================================================ */
+const LINE_URL = "#";
+
+/* ---- 裏側のエンジン（front/theme＝思考・不調の言葉で見せる。骨・部位は一切出さない）---- */
+const ZONE = {
+  neck:   { front:"考えすぎ",           theme:"肩こり・頭痛・顔のたるみ・白髪" },
+  back:   { front:"気づかい・がんばり",   theme:"自律神経・呼吸・肩まわり" },
+  waist:  { front:"頑固・踏ん張り",       theme:"腰・下半身・冷え" },
+  pelvis: { front:"本音のフタ",           theme:"女性性・下半身・くびれ" },
+  sacrum: { front:"感情の溜めこみ",       theme:"気力・生命力" },
+};
+const ZONE_KEYS = ["neck","back","waist","pelvis","sacrum"];
+
+/* a: [選択肢ラベル, 効果] —— 効果は zoneキー / "calm"(整っている) / "unaware"(気づけてない) */
+const CHAPTERS = ["第1章　思考と心のクセ","第2章　気になる見た目","第3章　カラダの不調・サイン"];
+const QUESTIONS = [
+  // 第1章　思考と心のクセ
+  { c:0, q:"つい、やってしまうのは…", a:[
+    ["あれこれ考えすぎてしまう","neck"],
+    ["まわりに気をつかい、いい人でいる","back"],
+    ["こうと決めたら譲れない（頑固）","waist"],
+    ["本音を飲みこんで、笑顔でやり過ごす","pelvis"] ]},
+  { c:0, q:"頭や心の中は、どんな感じ？", a:[
+    ["ぐるぐる思考が止まらない","neck"],
+    ["人の目や評価が気になる","back"],
+    ["自分の本当の気持ちが、よく分からない","pelvis"],
+    ["わりと穏やか","calm"] ]},
+  { c:0, q:"心当たりがあるのは…", a:[
+    ["何かに頼りたくなる（スマホ・甘いもの等）","neck"],
+    ["頼るのが苦手で、抱えこむ","back"],
+    ["気力がわかない・もう頑張りたくない","sacrum"],
+    ["特にない","calm"] ]},
+  // 第2章　気になる見た目
+  { c:1, q:"鏡を見て、いちばん気になるのは…", a:[
+    ["顔のたるみ・ほうれい線・白髪","neck"],
+    ["下半身太り・ぽっこりお腹","pelvis"],
+    ["肩幅・二の腕・背中の厚み","back"],
+    ["全体的に疲れて見える","sacrum"] ]},
+  { c:1, q:"体型の変化で気になるのは…", a:[
+    ["くびれがなくなってきた","pelvis"],
+    ["脚や下半身が太い","pelvis"],
+    ["上半身ががっしり（肩幅・アンダー）","back"],
+    ["痩せていて、太れない","back"] ]},
+  { c:1, q:"むくみ・冷えは…", a:[
+    ["顔がむくみやすい","neck"],
+    ["下半身がむくむ・冷える","waist"],
+    ["手足が冷たい","pelvis"],
+    ["あまりない","calm"] ]},
+  // 第3章　カラダの不調・サイン
+  { c:2, q:"出やすい不調は…", a:[
+    ["肩こり・頭痛・目の疲れ","neck"],
+    ["胃腸の弱さ・自律神経の乱れ","back"],
+    ["腰痛・ぎっくり腰","waist"],
+    ["冷え・下半身の重さ","waist"] ]},
+  { c:2, q:"呼吸や睡眠は…", a:[
+    ["呼吸が浅い・ため息が多い","back"],
+    ["考えごとで寝つけない","neck"],
+    ["朝がだるい・気力がわかない","sacrum"],
+    ["特に問題ない","calm"] ]},
+  { c:2, q:"鏡でチェック。当てはまるのは…", a:[
+    ["鎖骨のラインがV字に見える","neck"],
+    ["肩幅が広い・アンダーが太い","back"],
+    ["お尻や脚の形が気になる","pelvis"],
+    ["よく分からない","unaware"] ]},
+  { c:2, q:"立ち方・座り方のクセは…", a:[
+    ["脚を組む・片足重心","pelvis"],
+    ["浅く座って背もたれにもたれる","waist"],
+    ["気づくと猫背・前かがみ","back"],
+    ["考えたことない","unaware"] ]},
+  { c:2, q:"感情について、近いのは…", a:[
+    ["本音を抑えて、あとでモヤモヤする","pelvis"],
+    ["イライラや、人へのモヤッとが急に出る","pelvis"],
+    ["感情をあまり感じないようにしている","sacrum"],
+    ["わりと素直に出せている","calm"] ]},
+  { c:2, q:"自分のカラダのこと、正直…", a:[
+    ["よく分からない・見て見ぬふり","unaware"],
+    ["不調があるのが、当たり前になっている","unaware"],
+    ["気になるけど、何をすればいいか分からない","unaware"],
+    ["わりと分かっているほう","calm"] ]},
+];
+
+/* ---- 領域ごとの読み解き（癒しではなく“言い当て”）---- */
+const READING = {
+  neck: {
+    head:"あなたは、考えすぎが“見た目と不調”に出る人。",
+    body:[
+      "頭がいつも動いていて、ぐるぐる思考が止まりにくいタイプ。気づくと、スマホや甘いものに頼りたくなりませんか？",
+      "その緊張は、肩こり・頭痛・目の疲れになり、さらに——顔のたるみ・むくみ・白髪として“見た目”にあらわれます。",
+      "白髪もたるみも、年齢だけのせいではありません。「考えすぎ」のクセが、そのまま出ているサインです。"
+    ],
+    hopeTi:"このクセは、変えられます",
+    hope:"思考の緊張がゆるむと、顔まわりが引き上がり、目元も軽くなります。頭で頑張ってきた人ほど、ここが解けると見た目が変わります。"
+  },
+  back: {
+    head:"あなたは、気づかいを“カラダ”に溜めこむ人。",
+    body:[
+      "人に気をつかい、いい人でいようと頑張るぶん、いつも気が張りっぱなし。本音を飲みこんで、笑顔でやり過ごしていませんか？",
+      "それは自律神経の乱れ・胃腸の弱さ・呼吸の浅さ・ため息として出やすく、見た目では肩幅やアンダーがしっかりしがちです。",
+      "弱いのではなく、“細やかで優しい人”に出るクセです。"
+    ],
+    hopeTi:"このクセは、変えられます",
+    hope:"気の張りがゆるむと、呼吸が深くなり、肩まわりがすっきり。人に頼れるようになり、印象までやわらかく変わります。"
+  },
+  waist: {
+    head:"あなたは、がんばりと“頑固さ”が下半身に出る人。",
+    body:[
+      "こうと決めたら譲れない・習慣を変えにくい——その芯の強さの裏で、腰や下半身が踏ん張りすぎて固まりやすいタイプ。",
+      "腰痛・ぎっくり腰、下半身の冷えやむくみ、出やすくありませんか？"
+    ],
+    hopeTi:"このクセは、変えられます",
+    hope:"腰まわりの力みが抜けて土台が整うと、頑固さが“しなやかな芯”に変わり、冷えや下半身の重さも軽くなります。"
+  },
+  pelvis: {
+    head:"あなたは、本音にフタをして“女性らしさ”が滞りやすい人。",
+    body:[
+      "本音と建前がずれて、自分の本当の気持ちが分かりにくくなっていませんか？ 我慢した感情は、下半身に溜まりやすいタイプです。",
+      "それは見た目では、下半身太り・ぽっこりお腹・くびれの消失として出やすい。頑張りすぎて、女性らしさが“戦うモード”に傾いている人もいます。",
+      "あなたの女性性は、なくなったのではなく、奥でお休みしているだけです。"
+    ],
+    hopeTi:"このクセは、変えられます",
+    hope:"本音が流れ出してめぐりが戻ると、肌つや・くびれ・雰囲気までやわらぎます。年齢に関係なく、女性らしさはここから戻ります。"
+  },
+  sacrum: {
+    head:"あなたは、感情をカラダの奥に溜めこむ人。",
+    body:[
+      "気力がわかない、気分の波が大きい——それは、感情の溜まり場である“奥”が、もういっぱいになっているサインかもしれません。",
+      "ここは、自分ひとりではなかなか気づけない、とても深い場所です。"
+    ],
+    hopeTi:"このクセは、変えられます",
+    hope:"奥にたまった感情がほどけると、内側からエネルギーが戻り、毎日が軽くなります。——ただ、ここはとても繊細な場所。本当の読み解きは、丁寧に向き合う中でこそ見えてきます。"
+  },
+};
+
+const UNAWARE_NOTE =
+  "そして——「わからない」「気にしたことがない」が多かったあなたは、長いあいだ、自分のカラダの感覚にそっとフタをしてきた人。それだけ頭で頑張ってきたサインでもあります。まず“気づく”ことが、変化のはじまりです。";
+
+/* ---- 今すぐできるセルフケア（“ひと口”だけ。本当の方法＝マル秘は出さない / 薬機法：治る断定なし）---- */
+const CARE = {
+  neck:  "考えすぎに気づいたら、いったん目を閉じて、口から長〜く息を吐いてみて。それだけで、首と頭の力がふっとゆるみます。",
+  back:  "両肩をぎゅーっと耳まで上げて、ストンと落とす。3回くりかえすと、背中の“がんばり”が少し軽くなります。",
+  waist: "イスに浅く腰かけて、上半身をゆっくり前に倒し、腰をだらんと預ける。固まった腰が、じんわりほどけます。",
+  pelvis:"イスに座ったまま、お尻を左右にゆらゆら。骨盤まわりがゆるんで、めぐりが動き出します。",
+  sacrum:"お尻の上のあたりに手のひらを当てて、あたためる。深呼吸しながら1分。奥にこもった疲れが、ゆるんでいきます。",
+};
+const CARE_CALM = "今の整いを保つコツは、1日1回、長く息を吐いて、肩の力をストンと抜くこと。";
+
+/* ---- 科学のうらづけ（断定しない・職人技を“誰でも納得できる言葉”に翻訳）---- */
+const SCIENCE = {
+  neck:  "※ 首には、自律神経（迷走神経）や顔のリンパが集まります。考えすぎの緊張が、肩こり・むくみ・たるみとして出やすいことには、神経科学的にも理由があります。",
+  back:  "※ 背中（胸椎）は、交感神経が集まる場所。胃腸や呼吸ともつながっているため、気の張りが内臓や呼吸の浅さに出やすいと考えられています。",
+  waist: "※ 腰は、下半身のめぐりの要。踏ん張りすぎて固まると、冷えやむくみとしてあらわれやすくなります。",
+  pelvis:"※ 骨盤は、女性ホルモンと、抑えた感情がたまりやすい場所。我慢が、めぐりや下半身のかたちに出やすいことが知られています。",
+  sacrum:"※ 仙骨は、休息と回復をつかさどる副交感神経の出口。ここに疲れがたまると、気力が湧きにくくなると考えられています。",
+};
+
+/* ===== 状態 ===== */
+let idx = 0;
+const answers = new Array(QUESTIONS.length).fill(null);
+const $ = id => document.getElementById(id);
+
+$("lineBtn").href = LINE_URL;   // 上の LINE_URL を、ボタンに反映
+$("startBtn").onclick = () => { $("intro").classList.add("hidden"); $("quiz").classList.remove("hidden"); render(); };
+$("backBtn").onclick  = () => { if(idx>0){ idx--; render(); } };
+$("restartBtn").onclick = () => { idx=0; answers.fill(null); $("result").classList.add("hidden"); $("intro").classList.remove("hidden"); window.scrollTo(0,0); };
+
+function render(){
+  window.scrollTo(0,0);
+  const Q = QUESTIONS[idx];
+  $("progfill").style.width = (idx/QUESTIONS.length*100) + "%";
+  $("qcount").textContent = `質問 ${idx+1} / ${QUESTIONS.length}`;
+  $("qchapter").textContent = CHAPTERS[Q.c];
+  $("qtext").textContent = Q.q;
+  $("backBtn").disabled = idx===0;
+
+  const wrap = $("opts");
+  wrap.innerHTML = "";
+  Q.a.forEach(([label,code]) => {
+    const b = document.createElement("button");
+    b.className = "opt" + (answers[idx]===code ? " active" : "");
+    b.textContent = label;
+    b.onclick = () => {
+      answers[idx] = code;
+      if(idx < QUESTIONS.length-1){ idx++; render(); }
+      else finish();
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function score(){
+  const s = {neck:0,back:0,waist:0,pelvis:0,sacrum:0};
+  let unaware = 0, calm = 0;
+  answers.forEach(a=>{
+    if(!a) return;
+    if(a==="unaware") unaware++;
+    else if(a==="calm") calm++;
+    else s[a]++;
+  });
+  return {s, unaware, calm};
+}
+
+function finish(){
+  $("progfill").style.width = "100%";
+  $("quiz").classList.add("hidden");
+  $("result").classList.remove("hidden");
+  showResult();
+}
+
+function showResult(){
+  const {s, unaware, calm} = score();
+
+  // 並べ替え（同点は ZONE_KEYS の順で安定）
+  const ranked = ZONE_KEYS.slice().sort((a,b)=> s[b]-s[a]);
+  const lead = ranked[0];
+  const second = ranked[1];
+
+  // --- 読み解き本文（lead中心、secondが僅差なら添える）---
+  const r = READING[lead];
+  $("resHead").textContent = (s[lead]===0)
+    ? "あなたのカラダは、いま大きなクセが出ていません。"
+    : r.head;
+
+  const bodyEl = $("resBody");
+  bodyEl.innerHTML = "";
+  if(s[lead]===0){
+    bodyEl.innerHTML =
+      "<p>はっきりしたクセのサインは、いまのところ少なめ。カラダとの付き合いが、わりと上手な人です。</p>"+
+      "<p>ただ、カラダのクセは毎日の暮らしでつくられます。“出ていない今”をどう保つかこそ、これからの分かれ道です。</p>";
+  } else {
+    r.body.forEach(t=>{ const p=document.createElement("p"); p.textContent=t; bodyEl.appendChild(p); });
+    // secondが lead と僅差(=1差以内)かつ存在するなら、ひと言そえる
+    if(s[second] > 0 && (s[lead]-s[second])<=1 && second!==lead){
+      const p=document.createElement("p");
+      p.innerHTML = `そして、あなたには<strong>「${ZONE[second].front}」</strong>の傾向も重なっています。ひとつの型では語りきれない——それが、あなたです。`;
+      bodyEl.appendChild(p);
+    }
+    if(unaware>=3){
+      const p=document.createElement("p"); p.style.color="var(--muted)"; p.textContent=UNAWARE_NOTE;
+      bodyEl.appendChild(p);
+    }
+  }
+
+  // --- 科学のうらづけ ---
+  $("resSci").innerHTML = (s[lead]===0) ? "" : SCIENCE[lead];
+
+  // --- 希望ボックス ---
+  if(s[lead]===0){
+    $("resHope").innerHTML =
+      `<div class="h-ti">これからのあなたへ</div>`+
+      `整っているからこそ、ほんの少し整え方を知るだけで、カラダは一気に花ひらきます。それは、年齢に関係なく、自分で続けていけるものです。`;
+  } else {
+    $("resHope").innerHTML = `<div class="h-ti">${r.hopeTi}</div>${r.hope}`;
+  }
+
+  // --- 今すぐできるセルフケア ---
+  $("resCare").innerHTML = `<div class="c-ti">🤍 今すぐできる、ひとつ</div>${ s[lead]===0 ? CARE_CALM : CARE[lead] }`;
+
+  // --- 伸びしろバー（高いほど伸びしろ）---
+  const maxv = Math.max(1, ...ZONE_KEYS.map(k=>s[k]));
+  const bars = $("bars");
+  bars.innerHTML = "";
+  ranked.forEach(k=>{
+    const pct = Math.round(s[k]/maxv*100);
+    const row = document.createElement("div");
+    row.className="bar-row";
+    row.innerHTML =
+      `<div class="bar-top"><span class="bar-lab">${ZONE[k].front}</span>`+
+      `<span class="bar-sub">${ZONE[k].theme}</span></div>`+
+      `<div class="bar-track"><div class="bar-fill"></div></div>`;
+    bars.appendChild(row);
+    requestAnimationFrame(()=>{ row.querySelector(".bar-fill").style.width = Math.max(pct,6) + "%"; });
+  });
+}
+</script>
+</body>
+</html>
