@@ -57,14 +57,21 @@
   .progfill{height:100%;background:linear-gradient(90deg,var(--rose),var(--accent));width:0;transition:width .35s;}
   .progtxt{color:var(--muted);font-size:.78rem;margin-bottom:20px;letter-spacing:.03em;}
   .qchapter{font-size:.74rem;color:var(--accent-d);letter-spacing:.12em;margin-bottom:6px;font-weight:700;}
-  .q{font-size:1.2rem;font-weight:700;margin:2px 0 20px;line-height:1.6;}
+  .q{font-size:1.2rem;font-weight:700;margin:2px 0 6px;line-height:1.6;}
+  .qhint{font-size:.78rem;color:var(--muted);margin:0 0 18px;letter-spacing:.02em;}
   .opts{display:flex;flex-direction:column;gap:11px;}
   .opt{background:var(--panel-2);border:1.5px solid transparent;color:var(--text);border-radius:13px;
     padding:15px 17px;font-size:.97rem;font-family:inherit;text-align:left;cursor:pointer;
-    transition:.15s;line-height:1.65;}
+    transition:.15s;line-height:1.65;position:relative;padding-left:46px;}
   .opt:hover{border-color:var(--rose);transform:translateY(-1px);}
+  .opt::before{content:"";position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    width:18px;height:18px;border-radius:6px;border:1.5px solid var(--silver);background:#fff;transition:.15s;}
   .opt.active{border-color:var(--champ-deep);background:linear-gradient(180deg,rgba(246,210,218,.6),transparent);}
+  .opt.active::before{background:linear-gradient(135deg,var(--rose),var(--champ-deep));border-color:var(--champ-deep);}
+  .opt.active::after{content:"✓";position:absolute;left:20px;top:50%;transform:translateY(-50%);
+    color:#fff;font-size:12px;font-weight:700;}
   .nav{display:flex;gap:10px;margin-top:22px;}
+  .nav .btn{margin:0;}
   /* result */
   .res-eyebrow{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:.12em;margin-bottom:10px;}
   .res-head{font-size:1.34rem;line-height:1.75;text-align:center;font-weight:700;margin:0 0 4px;color:var(--accent-d);}
@@ -112,12 +119,12 @@
     </p>
     <p style="margin:0 0 4px;font-size:.95rem;">
       12の質問で、今のカラダが何を求めているのかを、一緒に見ていきましょう🤍<br>
-      うまく答えられない質問があっても大丈夫。<br>
-      <strong>「なんとなく違う」も、あなたのカラダの大切な声</strong>です。
+      <strong>あてはまるものは、いくつ選んでも大丈夫</strong>です。<br>
+      「なんとなく違う」も、あなたのカラダの大切な声です。
     </p>
     <div class="intro-note">
-      全12問・約2分。<br>
-      正解はありません。考えこまず、「なんとなく近いな」で選んでください。
+      全12問・約2分。正解はありません。<br>
+      各質問で、あてはまるものを<strong>いくつでも</strong>選んで、「次へ」で進んでください。
     </div>
     <button class="btn" id="startBtn">カラダの声を聴いてみる</button>
   </section>
@@ -129,9 +136,11 @@
     <div class="qchapter" id="qchapter"></div>
     <hr class="divider" style="margin:10px auto 18px">
     <div class="q" id="qtext"></div>
+    <div class="qhint">あてはまるもの、いくつでも選べます</div>
     <div class="opts" id="opts"></div>
     <div class="nav">
-      <button class="btn sub" id="backBtn">← ひとつ戻る</button>
+      <button class="btn sub" id="backBtn" style="flex:1;">← 戻る</button>
+      <button class="btn" id="nextBtn" style="flex:2;">次へ →</button>
     </div>
   </section>
 
@@ -182,8 +191,12 @@
 /* =========================================================
    カラダの声診断
    - 表：日常の手がかり（自覚なくても・認めたくなくても答えられる）
-   - 裏：首/背中/腰/骨盤/仙骨 ＋「気づけてない度」へマッピング（お客様には見せない）
-   - 結果：箱に入れない。一番眠っている領域＝伸びしろ として“あなただけ”の読み解き
+   - 裏：首/背中/腰/骨盤/仙骨へマッピング（お客様には見せない）
+   - 複数選択OK。「思考 × 見た目 × 不調」の3レンズを別々に見て掛け合わせる。
+     ・3つが同じ場所を指す → 一直線タイプ（断定の言い当て）
+     ・頭と体がズレる       → ねじれタイプ（“見抜く”言い当て）
+     ・あちこち同時に高い   → 統合タイプ（全身でつながっている）
+   - 1つの悩みが2箇所につながるものは、メイン=1点／つながる場所=0.5点で濃淡をつける。
    ========================================================= */
 
 /* ============================================================
@@ -196,7 +209,7 @@ const LINE_URL = "#";
 
 /* ---- 裏側のエンジン（front/theme＝思考・不調の言葉で見せる。骨・部位は一切出さない）---- */
 const ZONE = {
-  neck:   { front:"考えすぎ",           theme:"肩こり・頭痛・顔のたるみ・白髪" },
+  neck:   { front:"考えすぎ",           theme:"肩こり・頭痛・顔のたるみ・目元のクマ" },
   back:   { front:"気づかい・がんばり",   theme:"自律神経・呼吸・肩まわり" },
   waist:  { front:"頑固・踏ん張り",       theme:"腰・下半身・冷え" },
   pelvis: { front:"本音のフタ",           theme:"女性性・下半身・くびれ" },
@@ -204,7 +217,8 @@ const ZONE = {
 };
 const ZONE_KEYS = ["neck","back","waist","pelvis","sacrum"];
 
-/* a: [選択肢ラベル, 効果] —— 効果は zoneキー / "calm"(整っている) / "unaware"(気づけてない) */
+/* a: [選択肢ラベル, メインの場所, （任意）つながる場所] ——
+   メイン=1点、つながる場所=0.5点。場所キー / "calm"(整っている) / "unaware"(気づけてない) */
 const CHAPTERS = ["第1章　思考と心のクセ","第2章　気になる見た目","第3章　カラダの不調・サイン"];
 const QUESTIONS = [
   // 第1章　思考と心のクセ
@@ -224,27 +238,27 @@ const QUESTIONS = [
     ["気力がわかない・もう頑張りたくない","sacrum"],
     ["特にない","calm"] ]},
   // 第2章　気になる見た目
-  { c:1, q:"鏡を見て、いちばん気になるのは…", a:[
-    ["顔のたるみ・ほうれい線・白髪","neck"],
+  { c:1, q:"鏡を見て、気になるのは？", a:[
+    ["顔のたるみ・くすみ・目元のクマ","neck"],
     ["下半身太り・ぽっこりお腹","pelvis"],
     ["肩幅・二の腕・背中の厚み","back"],
     ["全体的に疲れて見える","sacrum"] ]},
   { c:1, q:"体型の変化で気になるのは…", a:[
     ["くびれがなくなってきた","pelvis"],
-    ["脚や下半身が太い","pelvis"],
+    ["脚や下半身が太い","pelvis","waist"],
     ["上半身ががっしり（肩幅・アンダー）","back"],
     ["痩せていて、太れない","back"] ]},
   { c:1, q:"むくみ・冷えは…", a:[
-    ["顔がむくみやすい","neck"],
-    ["下半身がむくむ・冷える","waist"],
-    ["手足が冷たい","pelvis"],
+    ["顔がむくみやすい","neck","pelvis"],
+    ["下半身がむくむ・冷える","waist","pelvis"],
+    ["手足が冷たい","pelvis","waist"],
     ["あまりない","calm"] ]},
   // 第3章　カラダの不調・サイン
   { c:2, q:"出やすい不調は…", a:[
     ["肩こり・頭痛・目の疲れ","neck"],
     ["胃腸の弱さ・自律神経の乱れ","back"],
     ["腰痛・ぎっくり腰","waist"],
-    ["冷え・下半身の重さ","waist"] ]},
+    ["冷え・下半身の重さ","waist","pelvis"] ]},
   { c:2, q:"呼吸や睡眠は…", a:[
     ["呼吸が浅い・ため息が多い","back"],
     ["考えごとで寝つけない","neck"],
@@ -256,13 +270,13 @@ const QUESTIONS = [
     ["お尻や脚の形が気になる","pelvis"],
     ["よく分からない","unaware"] ]},
   { c:2, q:"立ち方・座り方のクセは…", a:[
-    ["脚を組む・片足重心","pelvis"],
+    ["脚を組む・片足重心","pelvis","waist"],
     ["浅く座って背もたれにもたれる","waist"],
-    ["気づくと猫背・前かがみ","back"],
+    ["気づくと猫背・前かがみ","back","neck"],
     ["考えたことない","unaware"] ]},
   { c:2, q:"感情について、近いのは…", a:[
     ["本音を抑えて、あとでモヤモヤする","pelvis"],
-    ["イライラや、人へのモヤッとが急に出る","pelvis"],
+    ["イライラや、人へのモヤッとが急に出る","pelvis","sacrum"],
     ["感情をあまり感じないようにしている","sacrum"],
     ["わりと素直に出せている","calm"] ]},
   { c:2, q:"自分のカラダのこと、正直…", a:[
@@ -278,8 +292,8 @@ const READING = {
     head:"あなたは、考えすぎが“見た目と不調”に出る人。",
     body:[
       "頭がいつも動いていて、ぐるぐる思考が止まりにくいタイプ。気づくと、スマホや甘いものに頼りたくなりませんか？",
-      "その緊張は、肩こり・頭痛・目の疲れになり、さらに——顔のたるみ・むくみ・白髪として“見た目”にあらわれます。",
-      "白髪もたるみも、年齢だけのせいではありません。「考えすぎ」のクセが、そのまま出ているサインです。"
+      "その緊張は、肩こり・頭痛・目の疲れになり、さらに——顔のたるみ・くすみ・目元のクマとして“見た目”にあらわれます。",
+      "たるみも目元のクマも、年齢だけのせいではありません。「考えすぎ」のクセが、そのまま出ているサインです。"
     ],
     hopeTi:"このクセは、変えられます",
     hope:"思考の緊張がゆるむと、顔まわりが引き上がり、目元も軽くなります。頭で頑張ってきた人ほど、ここが解けると見た目が変わります。"
@@ -324,6 +338,22 @@ const READING = {
   },
 };
 
+/* ---- 掛け算の読み筋で使う、ひと言（思考側 / 体側）---- */
+const MIND_LINE = {
+  neck:  "いつも頭が動いていて、考えることで解決しようとします。",
+  back:  "まわりに気をつかい、いい人でいようと気を張っています。",
+  waist: "こうと決めたら譲らない、芯の強さで踏ん張っています。",
+  pelvis:"本音にそっとフタをして、笑顔でやり過ごしています。",
+  sacrum:"感情を表に出さず、奥にそっとしまいこんでいます。",
+};
+const BODY_LINE = {
+  neck:  "顔まわり（たるみ・くすみ・目元のクマ）や、肩こり・頭の重さとして。",
+  back:  "上半身のがっしり感や、呼吸の浅さ・胃腸の弱さとして。",
+  waist: "腰の重だるさや、下半身の冷え・むくみとして。",
+  pelvis:"下半身太り・ぽっこりお腹や、くびれの消えとして。",
+  sacrum:"全体の疲れた印象や、気力のわきにくさとして。",
+};
+
 const UNAWARE_NOTE =
   "そして——「わからない」「気にしたことがない」が多かったあなたは、長いあいだ、自分のカラダの感覚にそっとフタをしてきた人。それだけ頭で頑張ってきたサインでもあります。まず“気づく”ことが、変化のはじまりです。";
 
@@ -348,13 +378,14 @@ const SCIENCE = {
 
 /* ===== 状態 ===== */
 let idx = 0;
-const answers = new Array(QUESTIONS.length).fill(null);
+const answers = QUESTIONS.map(()=>[]);   // 各問：選んだ選択肢の番号（複数可）
 const $ = id => document.getElementById(id);
 
 $("lineBtn").href = LINE_URL;   // 上の LINE_URL を、ボタンに反映
-$("startBtn").onclick = () => { $("intro").classList.add("hidden"); $("quiz").classList.remove("hidden"); render(); };
-$("backBtn").onclick  = () => { if(idx>0){ idx--; render(); } };
-$("restartBtn").onclick = () => { idx=0; answers.fill(null); $("result").classList.add("hidden"); $("intro").classList.remove("hidden"); window.scrollTo(0,0); };
+$("startBtn").onclick   = () => { $("intro").classList.add("hidden"); $("quiz").classList.remove("hidden"); render(); };
+$("backBtn").onclick    = () => { if(idx>0){ idx--; render(); } };
+$("nextBtn").onclick    = () => { if(idx < QUESTIONS.length-1){ idx++; render(); } else finish(); };
+$("restartBtn").onclick = () => { idx=0; answers.forEach(a=>{a.length=0;}); $("result").classList.add("hidden"); $("intro").classList.remove("hidden"); window.scrollTo(0,0); };
 
 function render(){
   window.scrollTo(0,0);
@@ -364,32 +395,51 @@ function render(){
   $("qchapter").textContent = CHAPTERS[Q.c];
   $("qtext").textContent = Q.q;
   $("backBtn").disabled = idx===0;
+  $("nextBtn").textContent = (idx===QUESTIONS.length-1) ? "結果を見る →" : "次へ →";
 
   const wrap = $("opts");
   wrap.innerHTML = "";
-  Q.a.forEach(([label,code]) => {
+  Q.a.forEach((opt,oi) => {
     const b = document.createElement("button");
-    b.className = "opt" + (answers[idx]===code ? " active" : "");
-    b.textContent = label;
+    const on = answers[idx].includes(oi);
+    b.className = "opt" + (on ? " active" : "");
+    b.textContent = opt[0];
     b.onclick = () => {
-      answers[idx] = code;
-      if(idx < QUESTIONS.length-1){ idx++; render(); }
-      else finish();
+      const arr = answers[idx];
+      const at = arr.indexOf(oi);
+      if(at>=0){ arr.splice(at,1); } else { arr.push(oi); }
+      render();
     };
     wrap.appendChild(b);
   });
+  $("nextBtn").disabled = answers[idx].length===0;   // 1つ以上選ぶと進める
 }
 
-function score(){
-  const s = {neck:0,back:0,waist:0,pelvis:0,sacrum:0};
-  let unaware = 0, calm = 0;
-  answers.forEach(a=>{
-    if(!a) return;
-    if(a==="unaware") unaware++;
-    else if(a==="calm") calm++;
-    else s[a]++;
+/* ---- 集計：場所ごとの点 ＋ 思考レンズ／体レンズ（見た目＋不調）を別々に ---- */
+function analyze(){
+  const z     = {neck:0,back:0,waist:0,pelvis:0,sacrum:0};
+  const think = {neck:0,back:0,waist:0,pelvis:0,sacrum:0};
+  const phys  = {neck:0,back:0,waist:0,pelvis:0,sacrum:0};
+  let calmN = 0, unawareN = 0;
+  QUESTIONS.forEach((Q,qi)=>{
+    answers[qi].forEach(oi=>{
+      const opt = Q.a[oi]; if(!opt) return;
+      const p = opt[1], s = opt[2];
+      if(p==="calm"){ calmN++; return; }
+      if(p==="unaware"){ unawareN++; return; }
+      z[p] += 1;            if(s) z[s] += 0.5;
+      if(Q.c===0){ think[p] += 1; if(s) think[s] += 0.5; }
+      else       { phys[p]  += 1; if(s) phys[s]  += 0.5; }
+    });
   });
-  return {s, unaware, calm};
+  return {z, think, phys, calmN, unawareN};
+}
+
+/* いちばん点が高い場所（すべて0ならnull） */
+function argmax(o){
+  let best=null, bv=0;
+  ZONE_KEYS.forEach(k=>{ if(o[k] > bv){ bv=o[k]; best=k; } });
+  return best;
 }
 
 function finish(){
@@ -400,62 +450,86 @@ function finish(){
 }
 
 function showResult(){
-  const {s, unaware, calm} = score();
+  const {z, think, phys, calmN, unawareN} = analyze();
 
-  // 並べ替え（同点は ZONE_KEYS の順で安定）
-  const ranked = ZONE_KEYS.slice().sort((a,b)=> s[b]-s[a]);
-  const lead = ranked[0];
-  const second = ranked[1];
+  const ranked = ZONE_KEYS.slice().sort((a,b)=> z[b]-z[a]);
+  const lead = ranked[0], second = ranked[1];
+  const maxv  = Math.max(0, ...ZONE_KEYS.map(k=>z[k]));
+  const total = ZONE_KEYS.reduce((s,k)=>s+z[k], 0);
 
-  // --- 読み解き本文（lead中心、secondが僅差なら添える）---
-  const r = READING[lead];
-  $("resHead").textContent = (s[lead]===0)
-    ? "あなたのカラダは、いま大きなクセが出ていません。"
-    : r.head;
+  const head = $("resHead");
+  const body = $("resBody");
+  body.innerHTML = "";
+  const addP = (html,muted)=>{ const p=document.createElement("p"); if(muted) p.style.color="var(--muted)"; p.innerHTML=html; body.appendChild(p); };
 
-  const bodyEl = $("resBody");
-  bodyEl.innerHTML = "";
-  if(s[lead]===0){
-    bodyEl.innerHTML =
-      "<p>はっきりしたクセのサインは、いまのところ少なめ。カラダとの付き合いが、わりと上手な人です。</p>"+
-      "<p>ただ、カラダのクセは毎日の暮らしでつくられます。“出ていない今”をどう保つかこそ、これからの分かれ道です。</p>";
+  let focus = lead;          // 科学・希望・ケアを出す“整えどころ”
+  let type;
+  let tMind = null, tBody = null;
+
+  if(total < 1){
+    type = "calm";
+  } else if(z[ranked[2]] >= 0.6*maxv && maxv >= 2){
+    type = "integrate";      // 上位3つが団子＝あちこち同時に高い
   } else {
-    r.body.forEach(t=>{ const p=document.createElement("p"); p.textContent=t; bodyEl.appendChild(p); });
-    // secondが lead と僅差(=1差以内)かつ存在するなら、ひと言そえる
-    if(s[second] > 0 && (s[lead]-s[second])<=1 && second!==lead){
-      const p=document.createElement("p");
-      p.innerHTML = `そして、あなたには<strong>「${ZONE[second].front}」</strong>の傾向も重なっています。ひとつの型では語りきれない——それが、あなたです。`;
-      bodyEl.appendChild(p);
-    }
-    if(unaware>=3){
-      const p=document.createElement("p"); p.style.color="var(--muted)"; p.textContent=UNAWARE_NOTE;
-      bodyEl.appendChild(p);
+    const mind = argmax(think);
+    const pbody = argmax(phys);
+    if(mind && pbody && mind !== pbody){ type="twist"; tMind=mind; tBody=pbody; focus=pbody; }
+    else if(mind && pbody && mind === pbody){ type="align"; }
+    else { type="blend"; }
+  }
+
+  if(type==="calm"){
+    head.textContent = "あなたのカラダは、いま大きなクセが出ていません。";
+    addP("はっきりしたクセのサインは、いまのところ少なめ。カラダとの付き合いが、わりと上手な人です。");
+    addP("ただ、カラダのクセは毎日の暮らしでつくられます。“出ていない今”をどう保つかこそ、これからの分かれ道です。");
+    $("resSci").innerHTML  = "";
+    $("resHope").innerHTML = `<div class="h-ti">これからのあなたへ</div>整っているからこそ、ほんの少し整え方を知るだけで、カラダは一気に花ひらきます。年齢に関係なく、自分で続けていけるものです。`;
+    $("resCare").innerHTML = `<div class="c-ti">🤍 今すぐできる、ひとつ</div>${CARE_CALM}`;
+    drawBars(z, ranked, maxv);
+    return;
+  }
+
+  if(type==="integrate"){
+    head.textContent = "あなたは、一カ所ではなく“全身でつながって”声をあげている人。";
+    addP("どれか一つが飛び抜けて、ではありません。あなたは——首・背中・腰・骨盤、いくつもの場所が、同時に小さく手をあげています。");
+    addP("これは「あちこち不調」という意味ではありません。あなたの中で、思考・感情・カラダが深くつながっていて、<strong>一カ所だけを切り取れない人</strong>——という証拠です。");
+    addP("だからこそ、表面の対処では追いつかない。全体をつなげて整える視点が、あなたには合っています。");
+  } else if(type==="twist"){
+    head.textContent = "あなたは、頭と体が“ちがう場所”で頑張っている人。";
+    addP(`あなたの頭の中は〈<strong>${ZONE[tMind].front}</strong>〉。${MIND_LINE[tMind]}`);
+    addP(`でも、カラダが本当にサインを出しているのは——〈<strong>${ZONE[tBody].front}</strong>〉。${BODY_LINE[tBody]}`);
+    addP("頭ではちゃんと対処してきたつもりでも、根っこのクセは、別の場所に残ったまま。この“ねじれ”に気づくことが、あなたが本当に変わる入り口です。");
+  } else if(type==="align"){
+    head.textContent = READING[lead].head;
+    addP(`そしてあなたは——頭も、見た目も、不調も、すべてが同じ〈<strong>${ZONE[lead].front}</strong>〉を指しています。`);
+    READING[lead].body.forEach(t=>addP(t));
+    addP("これだけ一致しているということは、ここがあなたの“ど真ん中”。ぶれない分、整えたときの変化も、はっきり出ます。");
+  } else { // blend
+    head.textContent = READING[lead].head;
+    READING[lead].body.forEach(t=>addP(t));
+    if(z[second] > 0 && (z[lead]-z[second]) <= 1 && second !== lead){
+      addP(`そして、あなたには〈<strong>${ZONE[second].front}</strong>〉の傾向も重なっています。ひとつの型では語りきれない——それが、あなたです。`);
     }
   }
 
-  // --- 科学のうらづけ ---
-  $("resSci").innerHTML = (s[lead]===0) ? "" : SCIENCE[lead];
+  if(unawareN >= 3 && type !== "integrate") addP(UNAWARE_NOTE, true);
 
-  // --- 希望ボックス ---
-  if(s[lead]===0){
-    $("resHope").innerHTML =
-      `<div class="h-ti">これからのあなたへ</div>`+
-      `整っているからこそ、ほんの少し整え方を知るだけで、カラダは一気に花ひらきます。それは、年齢に関係なく、自分で続けていけるものです。`;
-  } else {
-    $("resHope").innerHTML = `<div class="h-ti">${r.hopeTi}</div>${r.hope}`;
-  }
+  $("resSci").innerHTML  = SCIENCE[focus];
+  $("resHope").innerHTML = `<div class="h-ti">${READING[focus].hopeTi}</div>${READING[focus].hope}`;
+  $("resCare").innerHTML = `<div class="c-ti">🤍 今すぐできる、ひとつ</div>${CARE[focus]}`;
 
-  // --- 今すぐできるセルフケア ---
-  $("resCare").innerHTML = `<div class="c-ti">🤍 今すぐできる、ひとつ</div>${ s[lead]===0 ? CARE_CALM : CARE[lead] }`;
+  drawBars(z, ranked, maxv);
+}
 
-  // --- 伸びしろバー（高いほど伸びしろ）---
-  const maxv = Math.max(1, ...ZONE_KEYS.map(k=>s[k]));
+/* ---- 伸びしろバー（高いほど伸びしろ）---- */
+function drawBars(z, ranked, maxv){
+  const m = Math.max(1, maxv);
   const bars = $("bars");
   bars.innerHTML = "";
   ranked.forEach(k=>{
-    const pct = Math.round(s[k]/maxv*100);
+    const pct = Math.round(z[k]/m*100);
     const row = document.createElement("div");
-    row.className="bar-row";
+    row.className = "bar-row";
     row.innerHTML =
       `<div class="bar-top"><span class="bar-lab">${ZONE[k].front}</span>`+
       `<span class="bar-sub">${ZONE[k].theme}</span></div>`+
