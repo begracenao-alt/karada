@@ -553,5 +553,12 @@ function drawBars(z, ranked, maxv){
   });
 }
 </script>
+
+<!-- ネットがあれば必ず最新を表示し（更新が即反映）、ネットが無いときだけ保存版で動く仕組み -->
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+</script>
 </body>
 </html>
