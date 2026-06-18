@@ -73,6 +73,11 @@
     padding:12px 16px;font-size:.97rem;font-family:inherit;text-align:left;cursor:pointer;
     transition:.15s;line-height:1.6;position:relative;padding-left:46px;}
   .opt:hover{border-color:var(--rose);transform:translateY(-1px);}
+  /* スマホ：タップ後にhover(枠)が居座って“線が残る”のを防ぐ。選択中(.active)だけ枠を出す */
+  @media (hover: none) {
+    .opt:hover{border-color:transparent;transform:none;}
+    .opt.active:hover{border-color:var(--champ-deep);}
+  }
   .opt::before{content:"";position:absolute;left:16px;top:50%;transform:translateY(-50%);
     width:18px;height:18px;border-radius:6px;border:1.5px solid var(--silver);background:#fff;transition:.15s;}
   .opt.active{border-color:var(--champ-deep);background:linear-gradient(180deg,rgba(246,210,218,.6),transparent);}
