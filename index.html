@@ -101,6 +101,10 @@
   .care .c-ti{font-weight:700;color:var(--gold-deep);margin-bottom:6px;font-size:.95rem;}
   .sci{font-size:.82rem;color:var(--muted);line-height:1.85;margin-top:14px;text-align:left;
     background:#fbf7f3;border-left:3px solid var(--champ);border-radius:8px;padding:11px 14px;}
+  /* 日本語の改行：「す。」など短い端数が、行末でポツンと独り立ちしないように整える */
+  .res-head, .res-body, .res-body p, .hope, .care, .sci, .cta .lead2, .disc{
+    text-wrap: pretty; line-break: strict; word-break: normal;
+  }
   /* balance bars */
   .balance{margin:6px 0 2px;}
   .balance .bhead{font-size:.95rem;font-weight:700;margin-bottom:14px;}
