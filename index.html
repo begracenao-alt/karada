@@ -589,10 +589,11 @@ function drawBars(z, ranked, maxv){
 }
 </script>
 
-<!-- ネットがあれば必ず最新を表示し（更新が即反映）、ネットが無いときだけ保存版で動く仕組み -->
+<!-- 旧オフライン保存係(SW)を解除し、キャッシュを消す（いつでも最新が見えるように） -->
 <script>
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+  navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }).catch(function(){});
+  if(window.caches){ caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }).catch(function(){}); }
 }
 </script>
 </body>
